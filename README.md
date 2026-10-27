@@ -20,7 +20,48 @@ Aplikasi ini dirancang dengan tampilan yang sederhana, modern, dan intuitif agar
 
 ## Tujuan Pengembangan
 
-Project ini bertujuan untuk meningkatkan pemahaman dalam membangun UI aplikasi mobile menggunakan Flutter, menerapkan navigasi ant halaman, serta membuat desain antarmuka yang konsisten, rapi, dan responsif.
+Project ini bertujuan untuk meningkatkan pemahaman dalam membangun UI aplikasi mobile menggunakan Flutter, menerapkan navigasi antar halaman, serta membuat desain antarmuka yang konsisten, rapi, dan responsif.
+
+## Cara Menjalankan Aplikasi (Run)
+
+Buka terminal di folder proyek ini:
+
+```bash
+cd Catatanku
+```
+
+### 1. Jalankan di Web Browser (Google Chrome)
+
+```bash
+flutter run -d chrome
+```
+
+### 2. Jalankan di Microsoft Edge
+
+```bash
+flutter run -d edge
+```
+
+### 3. Jalankan di Windows Desktop
+
+```bash
+flutter run -d windows
+```
+
+### 4. Jalankan di Android (Device / Emulator)
+
+```bash
+flutter run
+```
+
+## Arsitektur Kode & OOP
+
+- **Models (`lib/models/`)**: `NoteModel`, `CategoryModel`, `NotePriority` (Enum)
+- **Reusable Widgets (`lib/core/widgets/`)**: `CustomButton`, `CustomTextField`, `PriorityBadge`, `CategoryChip`, `NoteCard`
+- **Theme & Constants (`lib/core/constants/`)**: `AppColors`, `AppTheme`
+- **State Repository (`lib/services/`)**: `NoteRepository` (Singleton + ChangeNotifier)
+
+Laporan lengkap tersedia di file [LAPORAN_TUGAS_02.md](LAPORAN_TUGAS_02.md).
 
 ## Catatan
 
