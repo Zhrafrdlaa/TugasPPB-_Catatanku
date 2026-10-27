@@ -3,9 +3,10 @@ import '../core/constants/app_colors.dart';
 import '../core/constants/app_theme.dart';
 import '../core/widgets/custom_button.dart';
 import '../core/widgets/custom_text_field.dart';
+import '../core/widgets/google_button.dart';
 import 'home_screen.dart';
 
-// Halaman 2: login (belum ada autentikasi sungguhan, hanya pindah ke Beranda).
+// Halaman 2: login
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -38,6 +39,16 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     });
+  }
+
+  // Tombol Google belum terhubung ke layanan asli, hanya memunculkan pesan.
+  void _signInWithGoogle() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Pembuatan akun dengan Google segera hadir'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -87,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     CustomTextField(
                       label: 'Email',
                       controller: _emailController,
-                      hintText: 'nama@contoh.com',
+                      hintText: 'masukkan email',
                       prefixIcon: Icons.alternate_email_rounded,
                       keyboardType: TextInputType.emailAddress,
                       validator: _validateEmail,
@@ -96,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     CustomTextField(
                       label: 'Kata Sandi',
                       controller: _passwordController,
-                      hintText: 'Minimal enam karakter',
+                      hintText: 'masukkan kata sandi',
                       prefixIcon: Icons.lock_outline_rounded,
                       isPassword: true,
                       validator: _validatePassword,
@@ -106,6 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: 'Masuk',
                       isLoading: _isLoading,
                       onPressed: _submit,
+                    ),
+                    const SizedBox(height: 26),
+                    _buildOrDivider(),
+                    const SizedBox(height: 26),
+                    GoogleButton(
+                      onPressed: _isLoading ? null : _signInWithGoogle,
                     ),
                   ],
                 ),
@@ -117,6 +134,23 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Pemisah "atau" di antara tombol Masuk dan tombol Google.
+  Widget _buildOrDivider() {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: AppColors.line)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'atau',
+            style: const TextStyle(fontSize: 12.5, color: AppColors.inkSoft),
+          ),
+        ),
+        const Expanded(child: Divider(color: AppColors.line)),
+      ],
+    );
+  }
+
   String? _validateEmail(String? value) {
     final email = value?.trim() ?? '';
     if (email.isEmpty) return 'Email belum diisi';
@@ -125,7 +159,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.length < 6) return 'Kata sandi minimal 6 karakter';
+    if (value == null || value.length < 6) {
+      return 'Kata sandi minimal 6 karakter';
+    }
     return null;
   }
 }
