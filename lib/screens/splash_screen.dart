@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import 'login_screen.dart';
 
-/// Halaman 1: Splash Screen
-/// Menampilkan Logo, Nama Aplikasi (CatatanKu), dan Slogan/Tagline dengan animasi halus.
+// Halaman 1: splash, lalu otomatis ke Login.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -14,50 +13,40 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  static const Duration _hold = Duration(milliseconds: 2500);
+
+  late final AnimationController _anim = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..forward();
+
+  late final Animation<double> _fade = CurvedAnimation(
+    parent: _anim,
+    curve: Curves.easeOut,
+  );
+
+  late final Animation<Offset> _slide = Tween<Offset>(
+    begin: const Offset(0, 0.12),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
+
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeIn,
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: Curves.easeOutBack,
-      ),
-    );
-
-    _animController.forward();
-
-    // Navigasi otomatis ke Login Screen setelah 3 detik
-    _timer = Timer(const Duration(milliseconds: 2800), () {
-      if (mounted) {
-        _navigateToLogin();
-      }
-    });
+    _timer = Timer(_hold, _goToLogin);
   }
 
-  void _navigateToLogin() {
+  void _goToLogin() {
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (context, animation, secondaryAnimation) =>
             const LoginScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }
@@ -65,182 +54,131 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _timer?.cancel();
-    _animController.dispose();
+    _anim.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.deep,
       body: Stack(
         children: [
-          // Background ambient gradient waves
+          // Lingkaran hiasan latar.
           Positioned(
-            top: -size.width * 0.3,
-            right: -size.width * 0.2,
-            child: Container(
-              width: size.width * 0.9,
-              height: size.width * 0.9,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primaryLight.withValues(alpha: 0.18),
-                    AppColors.primaryLight.withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
+            top: -90,
+            right: -70,
+            child: _blob(230, 0.06),
           ),
           Positioned(
-            bottom: -size.width * 0.4,
-            left: -size.width * 0.2,
-            child: Container(
-              width: size.width * 1.0,
-              height: size.width * 1.0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.secondary.withValues(alpha: 0.15),
-                    AppColors.secondary.withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
+            bottom: 120,
+            left: -110,
+            child: _blob(260, 0.04),
           ),
-
-          // Main Center Content
           SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 36.0),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Spacer(),
-
-                        // Logo Container dengan modern glassy shadow & gradient
-                        Container(
-                          width: 104,
-                          height: 104,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: FadeTransition(
+                opacity: _fade,
+                child: SlideTransition(
+                  position: _slide,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Spacer(flex: 5),
+                      Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.auto_stories_rounded,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      const Text(
+                        'CatatanKu',
+                        style: TextStyle(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1.2,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(width: 46, height: 3, color: AppColors.accent),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Aplikasi catatan harian.\nTulis saja dulu, rapikan nanti.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.55,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const Spacer(flex: 3),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: _anim.value,
+                          minHeight: 3,
+                          backgroundColor: Colors.white24,
+                          valueColor:
+                              const AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'v1.0',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              letterSpacing: 0.6,
+                              color: Colors.white38,
                             ),
-                            borderRadius: BorderRadius.circular(28),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.35),
-                                blurRadius: 24,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
                           ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Ikon Buku Catatan & Pensil
-                              const Icon(
-                                Icons.auto_stories_rounded,
-                                size: 52,
-                                color: Colors.white,
-                              ),
-                              Positioned(
-                                right: 18,
-                                top: 20,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.amber,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.edit,
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-
-                        // Nama Aplikasi
-                        const Text(
-                          'CatatanKu',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Slogan / Tagline Aplikasi
-                        const Text(
-                          'Simpan setiap ide, rencana, dan momen berharga dalam satu tempat.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            height: 1.5,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-
-                        const Spacer(),
-
-                        // Loading Indicator / Tombol Masuk Cepat
-                        Column(
-                          children: [
-                            SizedBox(
-                              width: 48,
-                              height: 4,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: const LinearProgressIndicator(
-                                  backgroundColor: AppColors.surfaceVariant,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.primary,
-                                  ),
-                                ),
+                          TextButton(
+                            onPressed: _goToLogin,
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(44, 36),
+                            ),
+                            child: const Text(
+                              'Lewati',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 20),
-                            TextButton(
-                              onPressed: _navigateToLogin,
-                              child: const Text(
-                                'Lewati & Masuk →',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _blob(double size, double opacity) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: opacity),
       ),
     );
   }

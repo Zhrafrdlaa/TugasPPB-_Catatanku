@@ -1,111 +1,138 @@
 import 'package:flutter/material.dart';
+import '../core/constants/app_colors.dart';
+import '../core/utils/app_date.dart';
 import '../models/note_model.dart';
 
-/// Repository Catatan (Konsep OOP Singleton & State Management)
-/// Mengelola data catatan aplikasi dengan notifikasi pembaruan secara reaktif.
+// Penyimpanan catatan (singleton). Semua halaman baca dari sini.
 class NoteRepository extends ChangeNotifier {
-  // Singleton Pattern
+  NoteRepository._internal();
+
   static final NoteRepository _instance = NoteRepository._internal();
+
   factory NoteRepository() => _instance;
 
-  NoteRepository._internal() {
-    _notes = _generateInitialNotes();
-  }
+  final List<NoteModel> _notes = _sampleNotes();
 
-  late List<NoteModel> _notes;
-
-  List<NoteModel> get notes => List.unmodifiable(_notes);
-
-  /// Menghasilkan data awal sesuai dengan sampel tugas
-  List<NoteModel> _generateInitialNotes() {
-    return [
-      const NoteModel(
-        id: '1',
-        title: 'Ide Aplikasi',
-        content:
-            'Ide untuk membuat aplikasi catatan sederhana dengan fitur kategori, warna, dan prioritas. Aplikasi ini dirancang untuk mencatat ide, rencana, dan hal penting sehari-hari secara fleksibel dan rapi.',
-        category: 'Ide Aplikasi',
-        date: '19 Oktober 2026',
-        time: '09.30',
-        priority: NotePriority.high,
-        cardColor: Color(0xFFFEF3C7),
-        icon: Icons.lightbulb_rounded,
-      ),
-      const NoteModel(
-        id: '2',
-        title: 'Rencana Mingguan',
-        content:
-            '1. Menyelesaikan prototype antarmuka mobile.\n2. Review rancangan responsivitas pada layar smartphone.\n3. Uji interaksi navigasi antar halaman.',
-        category: 'Kerja',
-        date: '18 Oktober 2026',
-        time: '14.15',
-        priority: NotePriority.medium,
-        cardColor: Color(0xFFD1FAE5),
-        icon: Icons.calendar_today_rounded,
-      ),
-      const NoteModel(
-        id: '3',
-        title: 'Catatan Kuliah',
-        content:
-            'Materi Pemrograman Mobile Lanjut:\n- Arsitektur OOP dan pemisahan layer UI.\n- Pembuatan custom widget reusable.\n- Desain konsisten Material 3.',
-        category: 'Kuliah',
-        date: '17 Oktober 2026',
-        time: '10.00',
-        priority: NotePriority.medium,
-        cardColor: Color(0xFFEDE9FE),
-        icon: Icons.school_rounded,
-      ),
-      const NoteModel(
-        id: '4',
-        title: 'Hal yang Perlu Dibeli',
-        content:
-            '- Buku catatan spiral ukuran A5\n- Pulpen gel hitam 0.5mm\n- Sticky notes warna pastel\n- Kopi bubuk arabika',
-        category: 'Belanja',
-        date: '16 Oktober 2026',
-        time: '19.45',
-        priority: NotePriority.low,
-        cardColor: Color(0xFFFCE7F3),
-        icon: Icons.shopping_bag_rounded,
-      ),
-      const NoteModel(
-        id: '5',
-        title: 'Jurnal Harian',
-        content:
-            'Hari ini berhasil menyelesaikan perancangan antarmuka aplikasi CatatanKu. Tampilannya terlihat rapi, bersih, dan navigasinya terasa sangat natural.',
-        category: 'Jurnal Harian',
-        date: '15 Oktober 2026',
-        time: '21.00',
-        priority: NotePriority.low,
-        cardColor: Color(0xFFE0F2FE),
-        icon: Icons.favorite_rounded,
-      ),
-    ];
-  }
-
-  /// Menambahkan catatan baru
+  // Tambah catatan di urutan paling atas.
   void addNote(NoteModel note) {
     _notes.insert(0, note);
     notifyListeners();
   }
 
-  /// Menghapus catatan berdasarkan ID
   void deleteNote(String id) {
     _notes.removeWhere((note) => note.id == id);
     notifyListeners();
   }
 
-  /// Mencari catatan berdasarkan kata kunci dan kategori
+  // Saring catatan berdasarkan kata kunci & kategori aktif.
   List<NoteModel> filterNotes({String query = '', String category = 'all'}) {
-    return _notes.where((note) {
-      final matchesQuery = query.isEmpty ||
-          note.title.toLowerCase().contains(query.toLowerCase()) ||
-          note.content.toLowerCase().contains(query.toLowerCase());
+    final keyword = query.trim().toLowerCase();
 
-      final matchesCategory = category == 'all' ||
-          (category == 'penting' && note.priority == NotePriority.high) ||
-          note.category.toLowerCase().contains(category.toLowerCase());
+    return _notes.where((note) {
+      final matchesQuery = keyword.isEmpty ||
+          note.title.toLowerCase().contains(keyword) ||
+          note.content.toLowerCase().contains(keyword) ||
+          note.category.toLowerCase().contains(keyword);
+
+      final matchesCategory = switch (category) {
+        'all' => true,
+        'penting' => note.priority == NotePriority.high,
+        _ => note.category.toLowerCase().contains(category),
+      };
 
       return matchesQuery && matchesCategory;
     }).toList();
+  }
+
+  // Data contoh untuk tampilan awal.
+  static List<NoteModel> _sampleNotes() {
+    final today = DateTime.now();
+    String dateAgo(int days) =>
+        AppDate.short(today.subtract(Duration(days: days)));
+
+    return [
+      NoteModel(
+        id: '1',
+        title: 'Bayar Tagihan',
+        content:
+            '- Token listrik sebelum tanggal 25\n'
+            '- Cuci motor yang udah menumpuk\n'
+            '- Patungan Netflix sama Rani, transfer paling lambat besok',
+        category: 'Penting',
+        date: dateAgo(0),
+        time: '08.15',
+        priority: NotePriority.high,
+        cardColor: AppColors.noteColors[0],
+        icon: Icons.notifications_active_outlined,
+      ),
+      NoteModel(
+        id: '2',
+        title: 'Deadline Minggu Ini',
+        content:
+            'Kumpul makroekonomi Kamis jam 23.59, jangan lupa cantumin nama sama NIM '
+            'di paling atas. Terus ada foto bukti presentasi yang harus di-print.',
+        category: 'Kuliah',
+        date: dateAgo(1),
+        time: '16.40',
+        priority: NotePriority.high,
+        cardColor: AppColors.noteColors[2],
+        icon: Icons.school_outlined,
+      ),
+      NoteModel(
+        id: '3',
+        title: 'Shift Kafe',
+        content:
+            '- Ganti shift hari Sabtu sama Dika\n'
+            '- Bawa apron sama tumbler sendiri\n'
+            '- Ngerjain laporan kas mingguan',
+        category: 'Kerja',
+        date: dateAgo(1),
+        time: '11.05',
+        priority: NotePriority.medium,
+        cardColor: AppColors.noteColors[1],
+        icon: Icons.work_outline,
+      ),
+      NoteModel(
+        id: '4',
+        title: 'Belanja Dapur',
+        content:
+            '- Telur 1 kg\n'
+            '- Minyak goreng 2 liter\n'
+            '- Kopi sachet yang tadi abis\n'
+            '- Sayur buat masak 3 hari ke depan',
+        category: 'Belanja',
+        date: dateAgo(2),
+        time: '19.30',
+        priority: NotePriority.low,
+        cardColor: AppColors.noteColors[3],
+        icon: Icons.shopping_bag_outlined,
+      ),
+      NoteModel(
+        id: '5',
+        title: 'Mau Ditonton Nanti',
+        content:
+            'Nonton Look Back di bioskop, lanjutin episode One Piece yang ketunda, '
+            'sama nyoba drakor rekomendasi Rani pas lagi gabut.',
+        category: 'Pribadi',
+        date: dateAgo(3),
+        time: '21.10',
+        priority: NotePriority.low,
+        cardColor: AppColors.noteColors[4],
+        icon: Icons.local_movies_outlined,
+      ),
+      NoteModel(
+        id: '6',
+        title: 'Catatan Hari Ini',
+        content:
+            'Dari sore hujan deres, akhirnya sempat beberes kamar yang udah '
+            'kayak kapal karam. Besok mau nyoba resep nasi goreng yang dikasih ibu.',
+        category: 'Jurnal Harian',
+        date: dateAgo(4),
+        time: '22.00',
+        priority: NotePriority.low,
+        cardColor: AppColors.noteColors[5],
+        icon: Icons.favorite_outline,
+      ),
+    ];
   }
 }

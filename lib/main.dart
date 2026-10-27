@@ -7,8 +7,7 @@ void main() {
   runApp(const CatatanKuApp());
 }
 
-/// Root Widget Aplikasi CatatanKu
-/// Menggunakan konsep OOP State dan StatelessWidget yang rapi serta modular.
+// Entry point aplikasi.
 class CatatanKuApp extends StatelessWidget {
   const CatatanKuApp({super.key});
 
